@@ -53,4 +53,6 @@ python3 tg-join-group-exam-bot.py
 ## 将bot设置为管理员
 <img width="540" height="386" alt="image" src="https://github.com/user-attachments/assets/b9e6a598-e6f3-4fb9-9e16-245325fc6b2a" />
 
+## 部署完成
+新成员加群的时候, 机器人就开始工作了.
 
