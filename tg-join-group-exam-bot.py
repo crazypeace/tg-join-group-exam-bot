@@ -168,12 +168,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
                 
                 # 在群组中通知
-                await context.bot.send_message(
+                msg = await context.bot.send_message(
                     chat_id=chat_id,
                     text=f"✅ {update.effective_user.mention_html()} 已通过验证（用时 {time_taken}秒）",
                     parse_mode='HTML'
                 )
                 
+                 # 10秒后删除通知消息
+                context.job_queue.run_once(
+                    delete_message,
+                    10,
+                    data={'chat_id': chat_id, 'message_id': msg.message_id}
+                )
+
                 logger.info(f"用户 {user_id} 验证成功，用时 {time_taken}秒")
                 
             except Exception as e:
