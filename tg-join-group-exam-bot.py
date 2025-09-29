@@ -4,6 +4,9 @@ from telegram import Update, ChatPermissions
 from telegram.ext import Application, CommandHandler, ChatMemberHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
 
+# Bot Token - 从 BotFather 获取
+BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
+
 # 配置日志
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -20,9 +23,6 @@ logger = logging.getLogger(__name__)
 #     'question': f"{num1} + {num2}"
 # }
 pending_users = {}
-
-# Bot Token - 从 BotFather 获取
-BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
 
 async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """监控群组成员变化"""
