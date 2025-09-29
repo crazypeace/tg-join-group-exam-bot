@@ -1,2 +1,2 @@
-# tg-antispam-bot
-Telegram 防广告机器人
+# tg-join-group-exam-bot
+Telegram 加群验证机器人
