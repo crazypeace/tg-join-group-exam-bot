@@ -30,7 +30,7 @@ apt install -y python3-pip
 
 安装python依赖
 ```
-pip3 install python-telegram-bot --break-system-packages
+pip3 install "python-telegram-bot[job-queue]" --break-system-packages
 ```
 
 下载本项目代码
