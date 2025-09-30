@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 #     'join_time': datetime.now(),
 #     'chat_title': chat.title,
 #     'answer': correct_answer,
-#     'question': f"{num1} + {num2}"
+#     'question': question
 # }
 pending_users = {}
 
@@ -54,6 +54,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # 生成验证问题
             num1 = random.randint(1, 10)
             num2 = random.randint(1, 10)
+            question = f"{num1} + {num2}"
             correct_answer = num1 + num2
             
             # 记录待验证用户
@@ -62,7 +63,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'join_time': datetime.now(),
                 'chat_title': chat.title,
                 'answer': correct_answer,
-                'question': f"{num1} + {num2}"
+                'question': question
             }
             
             # 在群组中通知
@@ -83,7 +84,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 data={'chat_id': chat.id, 'message_id': welcome_msg.message_id}
             )
             
-            logger.info(f"已为用户 {user.id} 生成验证问题: {num1} + {num2} = {correct_answer}")
+            logger.info(f"已为用户 {user.id} 生成验证问题: {question} = {correct_answer}")
             
         except Exception as e:
             logger.error(f"处理新成员时出错: {e}")
