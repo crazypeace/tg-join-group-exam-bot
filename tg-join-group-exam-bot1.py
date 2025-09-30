@@ -4,11 +4,15 @@ from telegram import Update, ChatPermissions
 from telegram.ext import Application, CommandHandler, ChatMemberHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
 
+# Bot Token - 从 BotFather 获取
+BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
+
 # 配置日志
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # 存储待验证的用户信息
@@ -20,9 +24,6 @@ logger = logging.getLogger(__name__)
 #     'question': f"{num1} + {num2}"
 # }
 pending_users = {}
-
-# Bot Token - 从 BotFather 获取
-BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
 
 async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """监控群组成员变化"""
@@ -167,12 +168,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
                 
                 # 在群组中通知
-                await context.bot.send_message(
+                msg = await context.bot.send_message(
                     chat_id=chat_id,
                     text=f"✅ {update.effective_user.mention_html()} 已通过验证（用时 {time_taken}秒）",
                     parse_mode='HTML'
                 )
                 
+                 # 10秒后删除通知消息
+                context.job_queue.run_once(
+                    delete_message,
+                    10,
+                    data={'chat_id': chat_id, 'message_id': msg.message_id}
+                )
+
                 logger.info(f"用户 {user_id} 验证成功，用时 {time_taken}秒")
                 
             except Exception as e:
