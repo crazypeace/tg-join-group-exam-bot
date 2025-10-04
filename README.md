@@ -63,11 +63,20 @@ python3 tg-join-group-exam-bot.py
 你可以把 youtube.py 复制一份, 改个文件名, 再修改其内容.  
 <img width="800" height="166" alt="image" src="https://github.com/user-attachments/assets/4ee17d64-e7e2-40d9-bd2b-ced7a4284946" />
 
-## 使用 blog.py 和 rss.py 时需要安装依赖
+## 使用 blog.py 
+使用 [blog.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/blog.py) 可以设置 "我的博客最新的一篇博文的标题是什么?" 这样的 问题-回答  
+blog.py 也是一个例子, 用于在某个html页面上获取指定的元素作为答案.  
+更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
+
 使用 blog.py 需要安装依赖
 ```
 pip3 install requests BeautifulSoup4 --break-system-packages
 ```
+
+## 使用 rss.py 
+使用 [rss.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/rss.py) 可以设置 "我的博客最新的一篇博文的标题是什么?" 这样的 问题-回答  
+rss.py 也是一个例子, 用于在某个xml文件中获取指定元素作为答案.  
+更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
 
 使用 rss.py 时需要安装依赖
 ```
