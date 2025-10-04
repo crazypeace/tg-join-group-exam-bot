@@ -30,12 +30,14 @@ apt install -y python3-pip
 
 安装python依赖
 ```
-pip3 install "python-telegram-bot[job-queue]" --break-system-packages
+pip3 install "python-telegram-bot[job-queue]" requests BeautifulSoup4 --break-system-packages
 ```
 
 下载本项目代码
 ```
-wget https://github.com/crazypeace/tg-join-group-exam-bot/raw/refs/heads/main/tg-join-group-exam-bot.py
+apt install -y git
+git clone https://github.com/crazypeace/tg-join-group-exam-bot.git
+cd tg-join-group-exam-bot
 ```
 
 修改代码, 填写自己的 bot_token
@@ -69,17 +71,7 @@ python3 tg-join-group-exam-bot.py
 blog.py 也是一个例子, 用于在某个html页面上获取指定的元素作为答案.  
 更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
 
-使用 blog.py 需要安装更多依赖
-```
-pip3 install requests BeautifulSoup4 --break-system-packages
-```
-
 ### rss.py 
 使用 [rss.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/rss.py) 可以设置 "我的博客最新的一篇博文的标题是什么?" 这样的 问题-回答  
 rss.py 也是一个例子, 用于在某个xml文件中获取指定元素作为答案.  
 更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
-
-使用 rss.py 时需要安装依赖
-```
-pip3 install requests --break-system-packages
-```
