@@ -2,6 +2,7 @@ import logging
 import random
 import os
 import importlib
+from pathlib import Path
 from telegram import Update, ChatPermissions
 from telegram.ext import Application, CommandHandler, ChatMemberHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
@@ -9,13 +10,30 @@ from datetime import datetime
 # Bot Token - 从 BotFather 获取
 BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
 
-# 配置日志
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+# 日志目录 和 文件
+log_dir = Path(__file__).parent / 'logs'
+log_dir.mkdir(exist_ok=True)
+log_file = log_dir / f'telegram_bot_{datetime.now().strftime("%Y%m%d")}.log'
+
+# 配置日志格式
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-logging.getLogger("httpx").setLevel(logging.WARNING)
+
+# 文件处理器
+file_handler = logging.FileHandler(log_file, encoding='utf-8')
+file_handler.setFormatter(formatter)
+
+# 控制台处理器
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+# 设置日志器
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
 
 # 存储待验证的用户信息
 # pending_users[user.id] = {
