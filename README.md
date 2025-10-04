@@ -56,3 +56,9 @@ python3 tg-join-group-exam-bot.py
 ## 部署完成
 新成员加群的时候, 机器人就开始工作了.
 
+## 自定义 问题-答案
+在 pset 目录中, 各个 .py 文件定义了 问题-答案
+
+如果是简单文本的 问题-答案, 可以参考 youtube.py 文件.  
+你可以把 youtube.py 复制一份, 改个文件名, 再修改其内容.  
+<img width="800" height="166" alt="image" src="https://github.com/user-attachments/assets/4ee17d64-e7e2-40d9-bd2b-ced7a4284946" />
