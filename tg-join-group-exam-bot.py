@@ -10,6 +10,20 @@ from datetime import datetime
 # Bot Token - 从 BotFather 获取
 BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
 
+# 群组默认权限
+default_permissions = ChatPermissions(
+    can_send_messages=True,
+    can_send_photos=True,
+    can_send_videos=True,
+    can_send_video_notes=True,
+    can_send_audios=True,
+    can_send_voice_notes=True,
+    can_send_documents=True,
+    can_send_other_messages=True,
+    can_add_web_page_previews=True,
+    can_send_polls=True,
+)
+
 # 日志目录 和 文件
 log_dir = Path(__file__).parent / 'logs'
 log_dir.mkdir(exist_ok=True)
@@ -78,8 +92,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=chat.id,
                 user_id=user.id,
                 permissions=ChatPermissions(
-                    can_send_messages=False,
-                    can_send_other_messages=False
+                    can_send_messages=False
                 ),
             )
             
@@ -112,10 +125,10 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='Markdown'
             )
 
-            # 10秒后删除欢迎消息
+            # 120秒后删除欢迎消息
             context.job_queue.run_once(
                 delete_message,
-                10,
+                120,
                 data={'chat_id': chat.id, 'message_id': welcome_msg.message_id}
             )
             
@@ -182,10 +195,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.restrict_chat_member(
                 chat_id=chat_id,
                 user_id=user_id,
-                permissions=ChatPermissions(
-                    can_send_messages=True,
-                    can_send_other_messages=True
-                )
+                permissions=default_permissions
             )
                             
             # 删除待验证记录
