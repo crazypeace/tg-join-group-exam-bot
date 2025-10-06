@@ -27,7 +27,7 @@ default_permissions = ChatPermissions(
 # 日志目录 和 文件
 log_dir = Path(__file__).parent / 'logs'
 log_dir.mkdir(exist_ok=True)
-log_file = log_dir / f'telegram_bot_{datetime.now().strftime("%Y%m%d")}.log'
+log_file = log_dir / f'{Path(__file__).stem}_{datetime.now().strftime("%Y%m%d")}.log'
 
 # 配置日志格式
 formatter = logging.Formatter(
@@ -71,6 +71,17 @@ def get_random_module():
     module = importlib.import_module(f"pset.{chosen}")
     return module
 
+async def delete_message(context: ContextTypes.DEFAULT_TYPE):
+    """删除消息的回调函数"""
+    job_data = context.job.data
+    try:
+        await context.bot.delete_message(
+            chat_id=job_data['chat_id'],
+            message_id=job_data['message_id']
+        )
+    except Exception as e:
+        logger.error(f"删除消息失败: {e}")
+        
 async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """监控群组成员变化"""
     result = update.chat_member
@@ -84,7 +95,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if user.is_bot:
             return
         
-        logger.info(f"新成员 {user.id} ({user.first_name}) 加入群组 {chat.id}")
+        logger.info(f"新成员 {user.id} ({user.full_name}) 加入群组 {chat.id}")
         
         try:
             # 禁言新成员
@@ -93,8 +104,9 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 user_id=user.id,
                 permissions=ChatPermissions(
                     can_send_messages=False
-                ),
+                )
             )
+            logger.info(f"已禁言用户 {user.id}")
             
             # 生成验证问题和答案
             mod = get_random_module()
@@ -113,6 +125,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'answer': correct_answer,
                 'question': question
             }
+            logger.info(f"已为用户: {user.id} 生成验证问题: {question} 正确答案: {correct_answer}")
             
             # 在群组中通知
             welcome_msg = await context.bot.send_message(
@@ -131,23 +144,10 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 120,
                 data={'chat_id': chat.id, 'message_id': welcome_msg.message_id}
             )
-            
-            logger.info(f"已为用户: {user.id} 生成验证问题: {question} 正确答案: {correct_answer}")
-            
+             
         except Exception as e:
             logger.error(f"处理新成员时出错: {e}")
 
-async def delete_message(context: ContextTypes.DEFAULT_TYPE):
-    """删除消息的回调函数"""
-    job_data = context.job.data
-    try:
-        await context.bot.delete_message(
-            chat_id=job_data['chat_id'],
-            message_id=job_data['message_id']
-        )
-    except Exception as e:
-        logger.error(f"删除消息失败: {e}")
-        
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """处理 /start 命令"""
     user_id = update.effective_user.id
@@ -197,6 +197,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 user_id=user_id,
                 permissions=default_permissions
             )
+            logger.info(f"已解除用户 {user_id} 的禁言")
                             
             # 删除待验证记录
             del pending_users[user_id]
@@ -218,7 +219,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode='Markdown'
             )
             
-                # 10秒后删除通知消息
+            # 10秒后删除通知消息
             context.job_queue.run_once(
                 delete_message,
                 10,
