@@ -2,6 +2,7 @@ import logging
 import random
 import os
 import importlib
+import re
 from pathlib import Path
 from telegram import Update, ChatPermissions
 from telegram.ext import Application, CommandHandler, ChatMemberHandler, MessageHandler, filters, ContextTypes
@@ -186,7 +187,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_answer = message_text.strip()
     correct_answer = user_info['answer']
     
-    if correct_answer.lower() in user_answer.lower():
+    # 统一为小写, 去掉空白字符
+    correct_answer = re.sub(r'\s+', '', correct_answer.lower())
+    user_answer = re.sub(r'\s+', '', user_answer.lower())
+    if correct_answer in user_answer:
         # 答案正确
         chat_id = user_info['chat_id']
         
