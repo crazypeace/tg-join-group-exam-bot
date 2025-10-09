@@ -144,7 +144,7 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 120,
                 data={'chat_id': chat.id, 'message_id': welcome_msg.message_id}
             )
-             
+
         except Exception as e:
             logger.error(f"处理新成员时出错: {e}")
 
@@ -186,7 +186,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_answer = message_text.strip()
     correct_answer = user_info['answer']
     
-    if user_answer == correct_answer:
+    if correct_answer.lower() in user_answer.lower():
         # 答案正确
         chat_id = user_info['chat_id']
         
