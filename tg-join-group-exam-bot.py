@@ -92,72 +92,137 @@ async def track_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = result.new_chat_member.user
         chat = result.chat
         
-        # 跳过机器人自己, 也跳过其它被管理员加进群的机器人
-        if user.is_bot:
-            return
+        await start_verification(user, chat, context)
         
-        logger.info(f"新成员 {user.id} ({user.full_name}) 加入群组 {chat.id}")
+async def start_verification(user, chat, context: ContextTypes.DEFAULT_TYPE):
+    # 跳过机器人自己, 也跳过其它被管理员加进群的机器人
+    if user.is_bot:
+        return
+    
+    logger.info(f"新成员 {user.id} ({user.full_name}) 加入群组 {chat.id}")
+    
+    try:
+        # 禁言新成员
+        await context.bot.restrict_chat_member(
+            chat_id=chat.id,
+            user_id=user.id,
+            permissions=ChatPermissions(
+                can_send_messages=False
+            )
+        )
+        logger.info(f"已禁言用户 {user.id}")
         
-        try:
-            # 禁言新成员
-            await context.bot.restrict_chat_member(
-                chat_id=chat.id,
-                user_id=user.id,
-                permissions=ChatPermissions(
-                    can_send_messages=False
-                )
-            )
-            logger.info(f"已禁言用户 {user.id}")
-            
-            # 生成验证问题和答案
-            mod = get_random_module()
-            question, correct_answer = mod.buildQA()
+        # 生成验证问题和答案
+        mod = get_random_module()
+        question, correct_answer = mod.buildQA()
 
-            # num1 = random.randint(1, 10)
-            # num2 = random.randint(1, 10)
-            # question = f"{num1} + {num2}"
-            # correct_answer = num1 + num2
-            
-            # 记录待验证用户
-            pending_users[user.id] = {
-                'chat_id': chat.id,
-                'join_time': datetime.now(),
-                'chat_title': chat.title,
-                'answer': correct_answer,
-                'question': question
-            }
-            logger.info(f"已为用户: {user.id} 生成验证问题: {question} 正确答案: {correct_answer}")
-            
-            # 在群组中通知
-            welcome_msg = await context.bot.send_message(
-                chat_id=chat.id,
-                text=(
-                    f'👤 新成员 {user.mention_markdown()} 已加入\n'
-                    f'🔒 已暂时禁言\n'
-                    f'💬 请私聊机器人 [@{context.bot.username}](https://t.me/{context.bot.username}) 并发送 /start 完成验证'
-                ),
-                parse_mode='Markdown'
-            )
+        # num1 = random.randint(1, 10)
+        # num2 = random.randint(1, 10)
+        # question = f"{num1} + {num2}"
+        # correct_answer = num1 + num2
+        
+        # 记录待验证用户
+        pending_users[user.id] = {
+            'chat_id': chat.id,
+            'join_time': datetime.now(),
+            'chat_title': chat.title,
+            'answer': correct_answer,
+            'question': question
+        }
+        logger.info(f"已为用户: {user.id} 生成验证问题: {question} 正确答案: {correct_answer}")
+        
+        # 在群组中通知
+        welcome_msg = await context.bot.send_message(
+            chat_id=chat.id,
+            text=(
+                f'👤 新成员 {user.mention_markdown()} 已加入\n'
+                f'🔒 已暂时禁言\n'
+                f'💬 请私聊机器人 [@{context.bot.username}](https://t.me/{context.bot.username}) 并发送 /start 完成验证'
+            ),
+            parse_mode='Markdown',
+            disable_web_page_preview=True
+        )
 
-            # 120秒后删除欢迎消息
-            context.job_queue.run_once(
-                delete_message,
-                120,
-                data={'chat_id': chat.id, 'message_id': welcome_msg.message_id}
-            )
+        # 自动删除欢迎消息
+        context.job_queue.run_once(
+            delete_message,
+            120,
+            data={'chat_id': chat.id, 'message_id': welcome_msg.message_id}
+        )
 
-        except Exception as e:
-            logger.error(f"处理新成员时出错: {e}")
+    except Exception as e:
+        logger.error(f"处理新成员时出错: {e}")
+
+
+# ========= 管理员主动触发验证 =========
+async def new_member_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """命令：/new_member_verify <user_id>"""
+    chat = update.effective_chat
+    message = update.message
+    from_user = update.effective_user
+
+    # 自动删除 "/new_member_verify XXXX" 这条命令消息
+    context.job_queue.run_once(
+        delete_message,
+        10,
+        data={'chat_id': chat.id, 'message_id': message.message_id}
+    )
+    
+    # 检查是否是管理员（可根据需要严格验证）
+    member = await context.bot.get_chat_member(chat.id, from_user.id)
+    if member.status not in ("administrator", "creator"):
+        msg = await message.reply_text("❌ 只有管理员可以使用此命令。")
+        # 自动删除消息
+        context.job_queue.run_once(
+            delete_message,
+            10,
+            data={'chat_id': chat.id, 'message_id': msg.message_id}
+        )
+        return
+
+    if not context.args:
+        msg = await message.reply_text("用法：/new_member_verify <user_id>")
+        # 自动删除消息
+        context.job_queue.run_once(
+            delete_message,
+            10,
+            data={'chat_id': chat.id, 'message_id': msg.message_id}
+        )
+        return
+
+    target = context.args[0].strip()
+    try:
+        user = await context.bot.get_chat_member(chat.id, int(target))
+        user = user.user
+    except Exception as e:
+        msg = await message.reply_text(f"❌ 找不到该用户: {e}")
+        # 自动删除消息
+        context.job_queue.run_once(
+            delete_message,
+            10,
+            data={'chat_id': chat.id, 'message_id': msg.message_id}
+        )
+        return
+
+    # 启动验证流程
+    await start_verification(user, chat, context)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """处理 /start 命令"""
     user_id = update.effective_user.id
+    chat = update.effective_chat    
+    message = update.message
+    
+    # 如果不是私聊, 忽略
+    if chat.type != "private":
+      return
     
     # 检查是否是待验证用户
     if user_id in pending_users:
         user_info = pending_users[user_id]
         
-        await update.message.reply_text(
+        msg = await message.reply_text(
             f'👋 欢迎！你刚加入了 *{user_info['chat_title']}*\n\n'
             f'❓ 请问：*{user_info['question']}*\n\n'
             f'请直接输入答案',
@@ -166,12 +231,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         logger.info(f"用户 {user_id} 开始验证流程")
     else:
-        await update.message.reply_text(
+        msg = await message.reply_text(
             "👋 你好！我是群组验证机器人。\n\n"
             "🔹 当新成员加入群组时，我会暂时禁言他们\n"
             "🔹 新成员需要向我发送 /start 并回答验证问题\n"
             "🔹 验证通过后，我会自动解除禁言"
         )
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """处理用户的文本消息（验证答案）"""
@@ -220,10 +286,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg = await context.bot.send_message(
                 chat_id=chat_id,
                 text=f"✅ {update.effective_user.mention_markdown()} 已通过验证（用时 {time_taken}秒）",
-                parse_mode='Markdown'
+                parse_mode='Markdown',
+                disable_web_page_preview=True
             )
             
-            # 10秒后删除通知消息
+            # 自动删除通知消息
             context.job_queue.run_once(
                 delete_message,
                 10,
@@ -251,6 +318,7 @@ def main():
     
     # 添加处理器
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("new_member_verify", new_member_verify))
     application.add_handler(ChatMemberHandler(track_chat_member, ChatMemberHandler.CHAT_MEMBER))
     application.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND, handle_message))
     
