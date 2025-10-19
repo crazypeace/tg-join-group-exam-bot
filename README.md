@@ -75,3 +75,11 @@ blog.py 也是一个例子, 用于在某个html页面上获取指定的元素作
 使用 [rss.py](https://github.com/crazypeace/tg-join-group-exam-bot/blob/main/pset/rss.py) 可以设置 "我的博客最新的一篇博文的标题是什么?" 这样的 问题-回答  
 rss.py 也是一个例子, 用于在某个xml文件中获取指定元素作为答案.  
 更详细的说明, 请见: https://zelikk.blogspot.com/2025/10/tg-antispam-bot-3.html  
+
+
+# 主动启动验证
+机器人支持命令 `/new_member_verify <user_id>`
+
+
+群管理员和群主可以手动触发新成员入群验证.  
+用于处理当机器人离开群组, 或者机器人异常了, 有新成员入群, 但是没有启动入群流程的情况.
