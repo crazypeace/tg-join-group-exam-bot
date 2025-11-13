@@ -1,0 +1,16 @@
+[Unit]
+Description=tg-join-group-exam-bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/tg-join-group-exam-bot
+ExecStart=python3 /root/tg-join-group-exam-bot/tg-join-group-exam-bot.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
