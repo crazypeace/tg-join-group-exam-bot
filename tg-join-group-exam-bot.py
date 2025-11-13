@@ -7,6 +7,7 @@ from pathlib import Path
 from telegram import Update, ChatPermissions
 from telegram.ext import Application, CommandHandler, ChatMemberHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
+import sys
 
 # Bot Token - 从 BotFather 获取
 BOT_TOKEN = "BOT_TOKENBOT_TOKENBOT_TOKEN"
@@ -313,6 +314,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """启动机器人"""
+    
+    # 检查命令行参数
+    # 如果参数数量大于 1，则认为带上了参数（例如：python your_bot.py drop）
+    drop_updates = len(sys.argv) > 1
+    
+    if drop_updates:
+        logger.warning("检测到启动参数，将忽略所有缓冲区中未处理的消息 (drop_pending_updates=True)")
+    else:
+        logger.info("未检测到启动参数，将处理所有缓冲区中未处理的消息 (drop_pending_updates=False)")
+    
+    
+    
     # 创建应用
     application = Application.builder().token(BOT_TOKEN).build()
     
@@ -324,7 +337,10 @@ def main():
     
     # 启动机器人
     logger.info("机器人启动中...")
-    application.run_polling(allowed_updates=["message", "chat_member"])
+    application.run_polling(
+      allowed_updates=["message", "chat_member"],
+      drop_pending_updates=drop_updates  # 是否丢弃机器人离线时未处理的消息
+    )
 
 if __name__ == '__main__':
     main()
